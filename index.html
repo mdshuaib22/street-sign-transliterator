@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Street Sign Translator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a1628;
+  --navy-2:#102040;
+  --navy-3:#18345f;
+  --blue:#1b4fa8;
+  --blue-2:#2563d4;
+  --blue-3:#4a90ff;
+  --sky:#ebf4ff;
+  --sky-2:#dbeafe;
+  --sky-3:#bfd8ff;
+  --white:#ffffff;
+  --white-2:#f7faff;
+  --white-3:#eef5ff;
+  --text:#0a1628;
+  --text-2:#31537f;
+  --text-3:#6a87ae;
+  --border:#cadeff;
+  --border-2:#dfebff;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --danger-bg:#fff3f3;
+  --shadow:0 18px 42px rgba(13,50,116,.12);
+  --shadow-soft:0 10px 24px rgba(15,54,118,.08);
+  --transition:.22s ease;
+  --font-display:"Cormorant Garamond",serif;
+  --font-heading:"Playfair Display",serif;
+  --font-body:"Montserrat",sans-serif;
+}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  font-family:var(--font-body);
+  color:var(--text);
+  background:
+    radial-gradient(circle at top left,rgba(74,144,255,.16),transparent 28%),
+    radial-gradient(circle at bottom right,rgba(27,79,168,.12),transparent 30%),
+    linear-gradient(180deg,#fdfefe 0%,#f4f8ff 100%);
+}
+button,input{font:inherit}
+button{border:none;background:none}
+[hidden]{display:none!important}
+
+.page-bg{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    radial-gradient(circle at 18% 18%,rgba(37,99,212,.08),transparent 0 24%),
+    radial-gradient(circle at 82% 76%,rgba(27,79,168,.08),transparent 0 22%),
+    url("data:image/svg+xml,%3Csvg width='44' height='44' viewBox='0 0 44 44' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%231b4fa8' fill-opacity='0.035'%3E%3Cpath d='M22 22h22v2H22zM0 22h22v2H0zM21 0h2v22h-2zM21 22h2v22h-2z'/%3E%3C/g%3E%3C/svg%3E");
+}
+.top-line{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:3px;
+  background:linear-gradient(90deg,var(--navy),var(--blue-2),var(--blue-3),var(--blue-2),var(--navy));
+  z-index:100;
+}
+
+.auth-shell{
+  position:relative;
+  z-index:2;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:28px;
+  align-items:center;
+  padding:48px;
+}
+.auth-panel{
+  padding:44px;
+  border:1px solid rgba(202,222,255,.75);
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(18px);
+  box-shadow:var(--shadow);
+}
+.brand-card{
+  position:relative;
+  overflow:hidden;
+}
+.brand-card::after{
+  content:"";
+  position:absolute;
+  inset:auto -90px -110px auto;
+  width:240px;
+  height:240px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(37,99,212,.22),rgba(37,99,212,0));
+}
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:18px;
+  font-size:.62rem;
+  font-weight:700;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+  color:var(--blue-2);
+}
+.eyebrow::before,
+.eyebrow::after{
+  content:"";
+  width:32px;
+  height:1px;
+  background:rgba(37,99,212,.5);
+}
+.logo-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:22px;
+}
+.logo-mark{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  border:2px solid var(--blue-2);
+  display:grid;
+  place-items:center;
+  background:var(--sky);
+  color:var(--blue-2);
+  font-size:1.1rem;
+  font-weight:700;
+}
+.logo-text{
+  display:flex;
+  flex-direction:column;
+}
+.logo-main{
+  font-family:var(--font-heading);
+  font-size:1.7rem;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.logo-main em{font-style:italic;color:var(--blue-2)}
+.logo-sub{
+  font-size:.55rem;
+  text-transform:uppercase;
+  letter-spacing:.28em;
+  color:var(--text-3);
+}
+.auth-title{
+  max-width:580px;
+  margin-bottom:16px;
+  font-family:var(--font-display);
+  font-size:clamp(2.6rem,4vw,4.4rem);
+  line-height:1.05;
+  font-weight:300;
+  color:var(--navy);
+}
+.auth-title strong{font-weight:600}
+.auth-copy{
+  max-width:540px;
+  margin-bottom:26px;
+  font-size:.94rem;
+  line-height:1.95;
+  color:var(--text-2);
+}
+.feature-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin-top:24px;
+}
+.feature-card{
+  padding:18px;
+  border:1px solid var(--border-2);
+  background:linear-gradient(180deg,var(--white),var(--white-3));
+}
+.feature-label{
+  margin-bottom:10px;
+  font-size:.58rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.feature-value{
+  font-family:var(--font-display);
+  font-size:1.15rem;
+  color:var(--navy-2);
+}
+
+.login-card{
+  max-width:460px;
+  justify-self:end;
+}
+.login-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:22px;
+}
+.login-kicker{
+  font-size:.58rem;
+  font-weight:700;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.login-badge{
+  padding:7px 12px;
+  border:1px solid var(--border);
+  background:var(--sky);
+  color:var(--blue-2);
+  font-size:.56rem;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+.login-card h2{
+  margin-bottom:10px;
+  font-family:var(--font-heading);
+  font-size:1.7rem;
+  color:var(--navy);
+}
+.login-card p{
+  margin-bottom:22px;
+  line-height:1.8;
+  color:var(--text-2);
+  font-size:.92rem;
+}
+.demo-box{
+  margin-bottom:18px;
+  padding:16px 18px;
+  border:1px solid var(--border);
+  background:var(--white-3);
+}
+.demo-title{
+  margin-bottom:10px;
+  font-size:.56rem;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.demo-credentials{
+  display:grid;
+  gap:6px;
+  font-size:.82rem;
+  color:var(--navy-2);
+}
+.demo-credentials strong{font-weight:700}
+.mini-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:14px;
+  padding:10px 14px;
+  border:1px solid var(--border);
+  background:var(--white);
+  color:var(--blue-2);
+  font-size:.68rem;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:var(--transition);
+}
+.mini-btn:hover{border-color:var(--blue-2);background:var(--sky)}
+.field-wrap{
+  display:grid;
+  gap:8px;
+  margin-bottom:16px;
+}
+.field-wrap label{
+  font-size:.58rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.field-wrap input{
+  width:100%;
+  padding:14px 16px;
+  border:1px solid var(--border);
+  background:var(--white);
+  color:var(--text);
+  transition:var(--transition);
+}
+.field-wrap input:focus{
+  outline:none;
+  border-color:var(--blue-2);
+  box-shadow:0 0 0 4px rgba(37,99,212,.08);
+}
+.login-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:8px 0 18px;
+}
+.check-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--text-2);
+  font-size:.82rem;
+}
+.check-row input{accent-color:var(--blue-2)}
+.primary-btn,
+.secondary-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:13px 18px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:var(--transition);
+}
+.primary-btn{
+  width:100%;
+  border:1px solid var(--blue-2);
+  background:linear-gradient(135deg,var(--blue-2),var(--navy-3));
+  color:var(--white);
+  box-shadow:var(--shadow-soft);
+}
+.primary-btn:hover{transform:translateY(-1px)}
+.secondary-btn{
+  border:1px solid var(--border);
+  background:var(--white);
+  color:var(--text-2);
+}
+.secondary-btn:hover{border-color:var(--blue-2);color:var(--blue-2)}
+.auth-error,
+.err{
+  border:1px solid #f2b7b7;
+  background:var(--danger-bg);
+  color:#9f1f1f;
+  padding:12px 14px;
+  font-size:.82rem;
+  line-height:1.7;
+}
+.auth-note{
+  margin-top:18px;
+  font-size:.78rem;
+  line-height:1.75;
+  color:var(--text-3);
+}
+
+.app-shell{
+  position:relative;
+  z-index:2;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.status-bar{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:8px;
+  border-bottom:1px solid var(--border-2);
+  background:var(--sky);
+  font-size:.58rem;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.status-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--danger);
+}
+.status-dot.on{background:var(--success)}
+.status-text{color:#8f1d1d}
+.status-text.on{color:#166534}
+
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:20px 48px;
+  border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(18px);
+}
+.header-side{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  border:1px solid var(--border);
+  background:var(--sky);
+  font-size:.58rem;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--text-2);
+}
+.pill-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--blue-3);
+}
+.user-pill{
+  background:var(--white);
+}
+.user-pill strong{
+  color:var(--navy);
+  letter-spacing:.04em;
+  text-transform:none;
+}
+
+.hero{
+  text-align:center;
+  padding:52px 40px 34px;
+}
+.hero h1{
+  margin-bottom:12px;
+  font-family:var(--font-display);
+  font-size:clamp(2.2rem,4vw,3.8rem);
+  font-weight:300;
+  line-height:1.12;
+  color:var(--navy);
+}
+.hero h1 em{font-style:italic;color:var(--blue-2)}
+.hero p{
+  max-width:600px;
+  margin:0 auto;
+  color:var(--text-2);
+  line-height:1.95;
+  font-size:.92rem;
+}
+
+main{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  margin:0 48px 48px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.9);
+  box-shadow:var(--shadow);
+}
+.panel{
+  padding:32px;
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+.panel:first-child{border-right:1px solid var(--border-2)}
+.panel-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding-bottom:18px;
+  border-bottom:1px solid var(--border-2);
+}
+.panel-num{
+  width:28px;
+  font-family:var(--font-display);
+  font-size:1.9rem;
+  color:rgba(27,79,168,.42);
+  line-height:1;
+}
+.panel-title{
+  font-family:var(--font-heading);
+  font-size:.9rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--navy);
+}
+.panel-sub{
+  margin-top:2px;
+  font-size:.5rem;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.panel-icon{
+  margin-left:auto;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  display:grid;
+  place-items:center;
+  background:var(--sky);
+  color:var(--blue-2);
+  font-size:.7rem;
+}
+
+.viewport{
+  position:relative;
+  width:100%;
+  aspect-ratio:4/3;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#f4f9ff,#ebf3ff);
+  overflow:hidden;
+}
+.viewport::before,
+.viewport::after{
+  content:"";
+  position:absolute;
+  width:18px;
+  height:18px;
+  border:2px solid rgba(37,99,212,.62);
+  pointer-events:none;
+  z-index:3;
+}
+.viewport::before{
+  top:10px;
+  left:10px;
+  border-right:none;
+  border-bottom:none;
+}
+.viewport::after{
+  right:10px;
+  bottom:10px;
+  border-left:none;
+  border-top:none;
+}
+.viewport-placeholder{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  gap:14px;
+  text-align:center;
+  padding:24px;
+}
+.viewport-icon{
+  width:62px;
+  height:62px;
+  border-radius:50%;
+  border:2px solid var(--border);
+  display:grid;
+  place-items:center;
+  background:var(--white);
+}
+.viewport-icon svg{
+  width:26px;
+  height:26px;
+  stroke:var(--blue-2);
+}
+.viewport-copy{
+  display:grid;
+  gap:6px;
+}
+.viewport-copy strong{
+  font-family:var(--font-display);
+  font-size:1.05rem;
+  font-weight:400;
+  color:var(--navy);
+}
+.viewport-copy span{
+  font-size:.56rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+#previewVideo,
+#previewImage,
+#bboxCanvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+#previewVideo,
+#previewImage{display:none}
+#previewImage{object-fit:contain;background:var(--sky)}
+#previewVideo{object-fit:cover}
+#bboxCanvas{display:none;pointer-events:none}
+.live-chip{
+  position:absolute;
+  top:12px;
+  right:12px;
+  display:none;
+  align-items:center;
+  gap:6px;
+  padding:7px 10px;
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(220,38,38,.22);
+  color:var(--danger);
+  font-size:.52rem;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  z-index:4;
+}
+.live-chip::before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--danger);
+  animation:blink 1s ease-in-out infinite;
+}
+@keyframes blink{
+  0%,100%{opacity:1}
+  50%{opacity:.2}
+}
+
+.control-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 16px;
+  border:1px solid var(--border);
+  background:var(--white);
+  color:var(--text-2);
+  cursor:pointer;
+  transition:var(--transition);
+  font-size:.66rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.btn svg{
+  width:14px;
+  height:14px;
+  flex-shrink:0;
+}
+.btn:hover{border-color:var(--blue-2);background:var(--sky);color:var(--blue-2)}
+.btn:disabled{opacity:.38;cursor:not-allowed;pointer-events:none}
+.btn-danger{
+  border-color:#fecaca;
+  color:var(--danger);
+  background:#fff7f7;
+}
+.btn-primary{
+  position:relative;
+  width:100%;
+  padding:14px 16px;
+  border-color:var(--blue-2);
+  background:linear-gradient(135deg,var(--blue-2),var(--navy-3));
+  color:var(--white);
+  overflow:hidden;
+}
+.btn-primary .label,
+.btn-primary .spinner{position:relative;z-index:1}
+.btn-primary:hover{background:linear-gradient(135deg,#215ac6,#14396c);color:var(--white)}
+.btn-primary.loading .label{opacity:0}
+.btn-primary.loading .spinner{display:block}
+.spinner{
+  display:none;
+  position:absolute;
+  inset:0;
+  margin:auto;
+  width:16px;
+  height:16px;
+  border:2px solid rgba(255,255,255,.28);
+  border-top-color:var(--white);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.language-block{
+  display:grid;
+  gap:10px;
+}
+.section-label{
+  font-size:.56rem;
+  font-weight:700;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.language-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px;
+}
+.language-chip{
+  padding:9px 5px;
+  border:1px solid var(--border-2);
+  background:var(--white-3);
+  color:var(--text-2);
+  cursor:pointer;
+  transition:var(--transition);
+  text-align:center;
+  font-size:.56rem;
+  font-weight:700;
+  line-height:1.45;
+  text-transform:uppercase;
+}
+.language-chip span{
+  display:block;
+  margin-top:2px;
+  font-family:var(--font-display);
+  font-size:.72rem;
+  font-style:italic;
+  font-weight:400;
+  text-transform:none;
+}
+.language-chip:hover{border-color:var(--blue-2);background:var(--sky)}
+.language-chip.active{
+  border-color:var(--blue-2);
+  background:var(--blue-2);
+  color:var(--white);
+}
+
+.step-row{
+  display:flex;
+}
+.step{
+  position:relative;
+  flex:1;
+  padding:11px 8px;
+  border:1px solid var(--border-2);
+  background:var(--white-3);
+  text-align:center;
+  font-size:.5rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.step + .step{border-left:none}
+.step.active{
+  border-color:var(--blue-2);
+  background:var(--sky-2);
+  color:var(--blue-2);
+}
+.step.done{
+  border-color:#86efac;
+  background:#f0fdf4;
+  color:#166534;
+}
+
+.empty-state{
+  flex:1;
+  min-height:260px;
+  display:grid;
+  place-items:center;
+  gap:16px;
+  text-align:center;
+  padding:32px;
+}
+.empty-mark{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  border:2px solid var(--border);
+  display:grid;
+  place-items:center;
+  background:var(--sky);
+  color:var(--blue-2);
+  font-size:1.3rem;
+  font-weight:700;
+}
+.empty-state p{
+  max-width:220px;
+  color:var(--text-3);
+  line-height:1.8;
+}
+
+.results{
+  display:none;
+  flex-direction:column;
+  gap:16px;
+}
+.confidence{
+  display:grid;
+  gap:8px;
+}
+.confidence-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.confidence-head span:first-child{
+  font-size:.56rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.confidence-head strong{
+  font-family:var(--font-display);
+  font-size:1.35rem;
+  font-weight:400;
+  color:var(--blue-2);
+}
+.bar{
+  height:4px;
+  border-radius:999px;
+  background:var(--sky-2);
+  overflow:hidden;
+}
+.bar-fill{
+  width:0;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--blue-2),var(--blue-3));
+  transition:width .8s cubic-bezier(.25,.46,.45,.94);
+}
+.divider{
+  height:1px;
+  background:var(--border-2);
+}
+.result-card{
+  padding:18px;
+  border:1px solid var(--border-2);
+  background:var(--white-3);
+}
+.result-head{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  justify-content:space-between;
+  margin-bottom:10px;
+  flex-wrap:wrap;
+}
+.result-title{
+  font-size:.56rem;
+  font-weight:700;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--text-3);
+}
+.result-title.accent{color:var(--blue-2)}
+.result-meta{
+  padding:4px 8px;
+  border:1px solid var(--sky-3);
+  background:var(--sky);
+  color:var(--blue-2);
+  font-size:.54rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.copy-btn{
+  margin-left:auto;
+  padding:6px 10px;
+  border:1px solid var(--border);
+  background:var(--white);
+  color:var(--text-2);
+  cursor:pointer;
+  font-size:.56rem;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  transition:var(--transition);
+}
+.copy-btn:hover{border-color:var(--blue-2);color:var(--blue-2);background:var(--sky)}
+.result-text{
+  font-family:var(--font-display);
+  font-size:1.35rem;
+  line-height:1.55;
+  color:var(--navy);
+  word-break:break-word;
+}
+.result-text.translation{color:var(--blue-2)}
+.preview-card img{
+  width:100%;
+  max-height:140px;
+  object-fit:contain;
+  background:var(--sky);
+  border:1px solid var(--border-2);
+}
+
+footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  padding:16px 48px;
+  background:var(--navy);
+  color:var(--white);
+}
+.footer-brand{
+  font-family:var(--font-display);
+  font-size:.92rem;
+  letter-spacing:.12em;
+}
+.footer-meta{
+  font-size:.52rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:#9db7da;
+}
+
+@media (max-width:1100px){
+  .auth-shell{
+    grid-template-columns:1fr;
+    padding:24px;
+  }
+  .login-card{justify-self:stretch;max-width:none}
+  .feature-grid{grid-template-columns:1fr}
+}
+@media (max-width:920px){
+  header,footer{padding:18px 20px}
+  .hero{padding:34px 20px 24px}
+  main{
+    grid-template-columns:1fr;
+    margin:0 16px 28px;
+  }
+  .panel:first-child{
+    border-right:none;
+    border-bottom:1px solid var(--border-2);
+  }
+}
+@media (max-width:640px){
+  .auth-shell{padding:16px}
+  .auth-panel{padding:28px 22px}
+  .login-actions{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .control-row{flex-direction:column}
+  .btn,.secondary-btn,.mini-btn{width:100%}
+  .language-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero h1{font-size:2.1rem}
+}
+</style>
+</head>
+<body>
+<div class="top-line"></div>
+<div class="page-bg"></div>
+
+<section class="auth-shell" id="authGate">
+  <article class="auth-panel brand-card">
+    <div class="eyebrow">Street Sign Intelligence</div>
+    <div class="logo-row">
+      <div class="logo-mark">SL</div>
+      <div class="logo-text">
+        <div class="logo-main">Sign<em>Lens</em></div>
+        <div class="logo-sub">Translation System</div>
+      </div>
+    </div>
+    <h1 class="auth-title">Log in to your <strong>translation workspace</strong>.</h1>
+    <p class="auth-copy">
+      Sign in before using the OCR translator. Once you are inside, you can upload or capture a street sign,
+      extract the text, and translate it into your selected language in seconds.
+    </p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-label">OCR Engine</div>
+        <div class="feature-value">Fast image reading</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-label">Languages</div>
+        <div class="feature-value">10 target options</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-label">Workflow</div>
+        <div class="feature-value">Capture, detect, translate</div>
+      </div>
+    </div>
+  </article>
+
+  <article class="auth-panel login-card">
+    <div class="login-top">
+      <div class="login-kicker">Member Access</div>
+      <div class="login-badge">Login Page Added</div>
+    </div>
+    <h2>Welcome back</h2>
+    <p>Use the demo account below to enter the app. This is a client-side login gate so you can style and test the flow now.</p>
+
+    <div class="demo-box">
+      <div class="demo-title">Demo credentials</div>
+      <div class="demo-credentials">
+        <div><strong>Email:</strong> admin@signlens.ai</div>
+        <div><strong>Password:</strong> SignLens123</div>
+      </div>
+      <button class="mini-btn" type="button" id="fillDemoBtn">Fill demo login</button>
+    </div>
+
+    <form id="loginForm">
+      <div class="field-wrap">
+        <label for="emailInput">Email</label>
+        <input id="emailInput" name="email" type="email" autocomplete="email" placeholder="admin@signlens.ai" required/>
+      </div>
+      <div class="field-wrap">
+        <label for="passwordInput">Password</label>
+        <input id="passwordInput" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required/>
+      </div>
+      <div class="login-actions">
+        <label class="check-row" for="rememberInput">
+          <input id="rememberInput" type="checkbox"/>
+          Remember my email on this browser
+        </label>
+      </div>
+      <div class="auth-error" id="authError" hidden></div>
+      <button class="primary-btn" type="submit">Log In To SignLens</button>
+    </form>
+
+    <p class="auth-note">
+      When you are ready for production authentication, connect this form to a real backend login endpoint
+      instead of the built-in demo credentials.
+    </p>
+  </article>
+</section>
+
+<section class="app-shell" id="appShell" hidden>
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">Checking backend...</span>
+  </div>
+
+  <header>
+    <div class="header-side">
+      <div class="logo-row" style="margin-bottom:0">
+        <div class="logo-mark" style="width:44px;height:44px;font-size:.95rem">SL</div>
+        <div class="logo-text">
+          <div class="logo-main" style="font-size:1.45rem">Sign<em>Lens</em></div>
+          <div class="logo-sub">Translation System</div>
+        </div>
+      </div>
+      <div class="pill"><span class="pill-dot"></span>AI Powered | 10 Languages</div>
+    </div>
+    <div class="header-side">
+      <div class="pill user-pill">Signed in as <strong id="welcomeName">Admin User</strong></div>
+      <button class="secondary-btn" type="button" id="logoutBtn">Log Out</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>Detect every sign, <em>translate instantly</em></h1>
+    <p>Upload or capture a street sign image. OCR extracts the text and translates it into your chosen language in seconds.</p>
+  </div>
+
+  <main>
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-num">I</div>
+        <div>
+          <div class="panel-title">Capture and Upload</div>
+          <div class="panel-sub">Image input</div>
+        </div>
+        <div class="panel-icon">+</div>
+      </div>
+
+      <div class="viewport">
+        <div class="viewport-placeholder" id="viewportPlaceholder">
+          <div class="viewport-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="1"></rect>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M9 5V3h6v2"></path>
+            </svg>
+          </div>
+          <div class="viewport-copy">
+            <strong>Place sign image here</strong>
+            <span>JPG | PNG | WEBP</span>
+          </div>
+        </div>
+        <video id="previewVideo" autoplay playsinline muted></video>
+        <img id="previewImage" alt="Street sign preview"/>
+        <canvas id="bboxCanvas"></canvas>
+        <div class="live-chip" id="liveChip">Live</div>
+      </div>
+
+      <div class="control-row">
+        <label class="btn" for="fileInput">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          Upload image
+        </label>
+        <input id="fileInput" type="file" accept="image/jpeg,image/jpg,image/png,image/webp" hidden/>
+        <button class="btn" type="button" id="cameraBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 7 16 12 23 17V7z"></path>
+            <rect x="1" y="5" width="15" height="14" rx="1"></rect>
+          </svg>
+          <span id="cameraBtnText">Open camera</span>
+        </button>
+        <button class="btn" type="button" id="captureBtn" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          Capture
+        </button>
+      </div>
+
+      <div class="language-block">
+        <div class="section-label">Select target language</div>
+        <div class="language-grid" id="languageGrid">
+          <button class="language-chip active" type="button" data-language="en">English<span>Latin</span></button>
+          <button class="language-chip" type="button" data-language="kn">Kannada<span>Kannada</span></button>
+          <button class="language-chip" type="button" data-language="te">Telugu<span>Telugu</span></button>
+          <button class="language-chip" type="button" data-language="ta">Tamil<span>Tamil</span></button>
+          <button class="language-chip" type="button" data-language="mr">Marathi<span>Marathi</span></button>
+          <button class="language-chip" type="button" data-language="ml">Malayalam<span>Malayalam</span></button>
+          <button class="language-chip" type="button" data-language="hi">Hindi<span>Hindi</span></button>
+          <button class="language-chip" type="button" data-language="fr">French<span>Francais</span></button>
+          <button class="language-chip" type="button" data-language="es">Spanish<span>Espanol</span></button>
+          <button class="language-chip" type="button" data-language="ar">Arabic<span>Arabic</span></button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="processBtn" type="button" disabled>
+        <span class="label">Detect and translate</span>
+        <span class="spinner"></span>
+      </button>
+      <div class="err" id="errorBox" hidden></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-num">II</div>
+        <div>
+          <div class="panel-title">Analysis results</div>
+          <div class="panel-sub">Detection and translation</div>
+        </div>
+        <div class="panel-icon">+</div>
+      </div>
+
+      <div class="step-row">
+        <div class="step" id="stepRead">Reading</div>
+        <div class="step" id="stepExtract">Extracting</div>
+        <div class="step" id="stepTranslate">Translating</div>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <div class="empty-mark">SL</div>
+        <p>Upload or capture a street sign to begin.</p>
+      </div>
+
+      <div class="results" id="results">
+        <div class="confidence">
+          <div class="confidence-head">
+            <span>OCR confidence</span>
+            <strong id="confidenceValue">--</strong>
+          </div>
+          <div class="bar"><div class="bar-fill" id="confidenceFill"></div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="result-card">
+          <div class="result-head">
+            <span class="result-title">Detected text</span>
+            <button class="copy-btn" type="button" data-copy-target="detectedText">Copy</button>
+          </div>
+          <div class="result-text" id="detectedText"></div>
+        </div>
+        <div class="result-card">
+          <div class="result-head">
+            <span class="result-title accent">Translation</span>
+            <span class="result-meta" id="languageUsed"></span>
+            <button class="copy-btn" type="button" data-copy-target="translatedText">Copy</button>
+          </div>
+          <div class="result-text translation" id="translatedText"></div>
+        </div>
+        <div class="result-card preview-card" id="preprocessCard" hidden>
+          <div class="result-head">
+            <span class="result-title">Preprocessed view</span>
+          </div>
+          <img id="preprocessedImage" alt="Preprocessed sign image"/>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-brand">SignLens</div>
+    <div class="footer-meta">FastAPI | Tesseract OCR | 10 Languages | localhost:8000</div>
+  </footer>
+</section>
+
+<script>
+const API_BASE = "";
+const DEMO_AUTH = {
+  email: "admin@signlens.ai",
+  password: "SignLens123",
+  name: "Admin User"
+};
+const REMEMBERED_EMAIL_KEY = "signlens-remembered-email";
+const LANGUAGE_NAMES = {
+  en: "English",
+  kn: "Kannada",
+  te: "Telugu",
+  ta: "Tamil",
+  mr: "Marathi",
+  ml: "Malayalam",
+  hi: "Hindi",
+  fr: "French",
+  es: "Spanish",
+  ar: "Arabic"
+};
+
+let selectedLanguage = "en";
+let currentBlob = null;
+let mediaStream = null;
+let cameraOpen = false;
+
+const authGate = document.getElementById("authGate");
+const appShell = document.getElementById("appShell");
+const authError = document.getElementById("authError");
+const loginForm = document.getElementById("loginForm");
+const emailInput = document.getElementById("emailInput");
+const passwordInput = document.getElementById("passwordInput");
+const rememberInput = document.getElementById("rememberInput");
+const fillDemoBtn = document.getElementById("fillDemoBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const welcomeName = document.getElementById("welcomeName");
+
+const statusDot = document.getElementById("statusDot");
+const statusText = document.getElementById("statusText");
+const viewportPlaceholder = document.getElementById("viewportPlaceholder");
+const previewVideo = document.getElementById("previewVideo");
+const previewImage = document.getElementById("previewImage");
+const bboxCanvas = document.getElementById("bboxCanvas");
+const liveChip = document.getElementById("liveChip");
+const fileInput = document.getElementById("fileInput");
+const cameraBtn = document.getElementById("cameraBtn");
+const cameraBtnText = document.getElementById("cameraBtnText");
+const captureBtn = document.getElementById("captureBtn");
+const processBtn = document.getElementById("processBtn");
+const errorBox = document.getElementById("errorBox");
+const emptyState = document.getElementById("emptyState");
+const results = document.getElementById("results");
+const confidenceValue = document.getElementById("confidenceValue");
+const confidenceFill = document.getElementById("confidenceFill");
+const detectedText = document.getElementById("detectedText");
+const translatedText = document.getElementById("translatedText");
+const languageUsed = document.getElementById("languageUsed");
+const preprocessCard = document.getElementById("preprocessCard");
+const preprocessedImage = document.getElementById("preprocessedImage");
+const stepRead = document.getElementById("stepRead");
+const stepExtract = document.getElementById("stepExtract");
+const stepTranslate = document.getElementById("stepTranslate");
+
+function showAuthError(message) {
+  authError.textContent = message;
+  authError.hidden = false;
+}
+
+function clearAuthError() {
+  authError.hidden = true;
+  authError.textContent = "";
+}
+
+function saveRememberedEmail(email, rememberEmail) {
+  if (rememberEmail) {
+    localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
+  } else {
+    localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+  }
+}
+
+function restoreRememberedEmail() {
+  const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+  if (!savedEmail) {
+    rememberInput.checked = false;
+    return;
+  }
+
+  emailInput.value = savedEmail;
+  rememberInput.checked = true;
+}
+
+function showApp(user) {
+  welcomeName.textContent = user.name || user.email || "Member";
+  authGate.hidden = true;
+  appShell.hidden = false;
+  clearAuthError();
+  checkBackend();
+}
+
+function showLogin() {
+  appShell.hidden = true;
+  authGate.hidden = false;
+  passwordInput.value = "";
+  emailInput.focus();
+}
+
+function handleLogin(event) {
+  event.preventDefault();
+  clearAuthError();
+
+  const email = emailInput.value.trim().toLowerCase();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    showAuthError("Enter both email and password.");
+    return;
+  }
+
+  // This is a demo login gate until a real backend auth endpoint exists.
+  if (email !== DEMO_AUTH.email || password !== DEMO_AUTH.password) {
+    showAuthError("Use the demo credentials shown above to access the app.");
+    return;
+  }
+
+  saveRememberedEmail(email, rememberInput.checked);
+  loginForm.reset();
+  showApp(DEMO_AUTH);
+}
+
+function handleLogout() {
+  stopCamera();
+  currentBlob = null;
+  fileInput.value = "";
+  resetPreview();
+  resetResults();
+  setProcessLoading(false);
+  showLogin();
+  restoreRememberedEmail();
+}
+
+function fillDemoCredentials() {
+  emailInput.value = DEMO_AUTH.email;
+  passwordInput.value = DEMO_AUTH.password;
+  emailInput.focus();
+}
+
+function checkBackend() {
+  fetch(API_BASE + "/api/health")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("offline");
+      }
+      statusDot.classList.add("on");
+      statusText.classList.add("on");
+      statusText.textContent = "Backend online | localhost:8000";
+    })
+    .catch(() => {
+      statusDot.classList.remove("on");
+      statusText.classList.remove("on");
+      statusText.textContent = "Backend offline | run your FastAPI server on port 8000";
+    });
+}
+
+function showError(message) {
+  errorBox.textContent = message;
+  errorBox.hidden = false;
+}
+
+function clearError() {
+  errorBox.hidden = true;
+  errorBox.textContent = "";
+}
+
+function setProcessLoading(isLoading) {
+  if (isLoading) {
+    processBtn.classList.add("loading");
+    processBtn.disabled = true;
+  } else {
+    processBtn.classList.remove("loading");
+    processBtn.disabled = !currentBlob;
+  }
+}
+
+function updateStep(stepElement, state) {
+  stepElement.className = "step" + (state ? " " + state : "");
+}
+
+function resetSteps() {
+  updateStep(stepRead, "");
+  updateStep(stepExtract, "");
+  updateStep(stepTranslate, "");
+}
+
+function resetPreview() {
+  viewportPlaceholder.style.display = "grid";
+  previewVideo.style.display = "none";
+  previewImage.style.display = "none";
+  previewImage.removeAttribute("src");
+  bboxCanvas.style.display = "none";
+  liveChip.style.display = "none";
+}
+
+function showImagePreview(source) {
+  viewportPlaceholder.style.display = "none";
+  previewVideo.style.display = "none";
+  previewImage.src = source;
+  previewImage.style.display = "block";
+  bboxCanvas.style.display = "none";
+  liveChip.style.display = "none";
+}
+
+function resetResults() {
+  results.style.display = "none";
+  emptyState.style.display = "grid";
+  confidenceValue.textContent = "--";
+  confidenceFill.style.width = "0%";
+  detectedText.textContent = "";
+  translatedText.textContent = "";
+  languageUsed.textContent = "";
+  preprocessCard.hidden = true;
+  preprocessedImage.removeAttribute("src");
+  resetSteps();
+}
+
+function selectLanguage(button) {
+  document.querySelectorAll(".language-chip").forEach((chip) => {
+    chip.classList.remove("active");
+  });
+  button.classList.add("active");
+  selectedLanguage = button.dataset.language;
+}
+
+function dataUrlToBlob(dataUrl) {
+  const parts = dataUrl.split(",");
+  const mime = parts[0].match(/:(.*?);/)[1];
+  const bytes = atob(parts[1]);
+  const array = new Uint8Array(bytes.length);
+
+  for (let index = 0; index < bytes.length; index += 1) {
+    array[index] = bytes.charCodeAt(index);
+  }
+
+  return new Blob([array], { type: mime });
+}
+
+function readUploadedFile(event) {
+  const file = event.target.files[0];
+  if (!file) {
+    return;
+  }
+
+  clearError();
+  resetResults();
+
+  if (!["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.type)) {
+    showError("Please use a JPG, PNG, or WEBP file.");
+    fileInput.value = "";
+    return;
+  }
+
+  currentBlob = file;
+  const reader = new FileReader();
+  reader.onload = (loadEvent) => {
+    showImagePreview(loadEvent.target.result);
+  };
+  reader.readAsDataURL(file);
+
+  if (cameraOpen) {
+    stopCamera();
+  }
+
+  processBtn.disabled = false;
+  fileInput.value = "";
+}
+
+function startCamera() {
+  clearError();
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showError("Camera access is not supported in this browser.");
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: { ideal: "environment" },
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    },
+    audio: false
+  })
+    .then((stream) => {
+      mediaStream = stream;
+      previewVideo.srcObject = stream;
+      previewVideo.style.display = "block";
+      previewImage.style.display = "none";
+      viewportPlaceholder.style.display = "none";
+      liveChip.style.display = "inline-flex";
+      cameraOpen = true;
+      cameraBtnText.textContent = "Close camera";
+      cameraBtn.classList.add("btn-danger");
+      captureBtn.hidden = false;
+      processBtn.disabled = true;
+      previewVideo.play().catch(() => {});
+    })
+    .catch((error) => {
+      showError("Camera error: " + (error.message || error.name));
+    });
+}
+
+function stopCamera() {
+  if (mediaStream) {
+    mediaStream.getTracks().forEach((track) => track.stop());
+  }
+
+  mediaStream = null;
+  previewVideo.srcObject = null;
+  previewVideo.style.display = "none";
+  liveChip.style.display = "none";
+  cameraOpen = false;
+  cameraBtnText.textContent = "Open camera";
+  cameraBtn.classList.remove("btn-danger");
+  captureBtn.hidden = true;
+
+  if (!currentBlob) {
+    viewportPlaceholder.style.display = "grid";
+  }
+}
+
+function toggleCamera() {
+  if (cameraOpen) {
+    stopCamera();
+  } else {
+    startCamera();
+  }
+}
+
+function captureFrame() {
+  if (!mediaStream || !previewVideo.videoWidth) {
+    showError("Camera is not ready yet. Try again in a second.");
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = previewVideo.videoWidth;
+  canvas.height = previewVideo.videoHeight;
+  canvas.getContext("2d").drawImage(previewVideo, 0, 0, canvas.width, canvas.height);
+
+  const dataUrl = canvas.toDataURL("image/jpeg", .92);
+  currentBlob = dataUrlToBlob(dataUrl);
+  showImagePreview(dataUrl);
+  stopCamera();
+  processBtn.disabled = false;
+  resetResults();
+  clearError();
+}
+
+function drawPlaceholderBox() {
+  if (previewImage.style.display === "none") {
+    return;
+  }
+
+  bboxCanvas.style.display = "block";
+  bboxCanvas.width = previewImage.clientWidth || previewImage.naturalWidth;
+  bboxCanvas.height = previewImage.clientHeight || previewImage.naturalHeight;
+
+  const ctx = bboxCanvas.getContext("2d");
+  const width = bboxCanvas.width;
+  const height = bboxCanvas.height;
+  const margin = width * .12;
+  const boxX = margin;
+  const boxY = height * .2;
+  const boxWidth = width - (margin * 2);
+  const boxHeight = height * .6;
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.strokeStyle = "rgba(37,99,212,.75)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 4]);
+  ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+  ctx.setLineDash([]);
+}
+
+function copyResult(button) {
+  const targetId = button.dataset.copyTarget;
+  const target = document.getElementById(targetId);
+
+  if (!target || !target.textContent.trim()) {
+    return;
+  }
+
+  const originalLabel = button.textContent;
+  navigator.clipboard.writeText(target.textContent.trim())
+    .then(() => {
+      button.textContent = "Copied";
+      setTimeout(() => {
+        button.textContent = originalLabel;
+      }, 1400);
+    })
+    .catch(() => {
+      button.textContent = originalLabel;
+    });
+}
+
+function processImage() {
+  if (!currentBlob) {
+    return;
+  }
+
+  clearError();
+  resetResults();
+  setProcessLoading(true);
+  emptyState.style.display = "none";
+
+  updateStep(stepRead, "done");
+  updateStep(stepExtract, "active");
+
+  const formData = new FormData();
+  formData.append("file", currentBlob, "sign.jpg");
+  formData.append("language", selectedLanguage);
+
+  fetch(API_BASE + "/api/upload-image", {
+    method: "POST",
+    body: formData
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        let payload = {};
+        try {
+          payload = await response.json();
+        } catch (error) {
+          payload = {};
+        }
+        throw new Error(payload.detail || payload.message || "Server error " + response.status);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      updateStep(stepExtract, "done");
+      updateStep(stepTranslate, "active");
+
+      setTimeout(() => {
+        const confidence = Math.max(0, Math.min(100, Math.round(data.confidence || 0)));
+
+        updateStep(stepTranslate, "done");
+        confidenceValue.textContent = confidence + "%";
+        confidenceFill.style.width = confidence + "%";
+        detectedText.textContent = data.detected_text || "";
+        translatedText.textContent = data.translated_text || "";
+        languageUsed.textContent = LANGUAGE_NAMES[selectedLanguage] || selectedLanguage;
+
+        if (data.preprocessed_image) {
+          preprocessedImage.src = "data:image/png;base64," + data.preprocessed_image;
+          preprocessCard.hidden = false;
+        }
+
+        results.style.display = "flex";
+        drawPlaceholderBox();
+        setProcessLoading(false);
+      }, 320);
+    })
+    .catch((error) => {
+      resetSteps();
+      emptyState.style.display = "grid";
+      showError(error.message || "Unable to process the image.");
+      setProcessLoading(false);
+    });
+}
+
+fillDemoBtn.addEventListener("click", fillDemoCredentials);
+loginForm.addEventListener("submit", handleLogin);
+logoutBtn.addEventListener("click", handleLogout);
+fileInput.addEventListener("change", readUploadedFile);
+cameraBtn.addEventListener("click", toggleCamera);
+captureBtn.addEventListener("click", captureFrame);
+processBtn.addEventListener("click", processImage);
+document.getElementById("languageGrid").addEventListener("click", (event) => {
+  const button = event.target.closest(".language-chip");
+  if (button) {
+    selectLanguage(button);
+  }
+});
+document.querySelectorAll(".copy-btn").forEach((button) => {
+  button.addEventListener("click", () => copyResult(button));
+});
+
+resetPreview();
+resetResults();
+restoreRememberedEmail();
+showLogin();
+checkBackend();
+setInterval(checkBackend, 5000);
+</script>
+</body>
+</html>
