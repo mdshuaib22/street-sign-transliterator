@@ -950,81 +950,7 @@ footer{
 <div class="top-line"></div>
 <div class="page-bg"></div>
 
-<section class="auth-shell" id="authGate">
-  <article class="auth-panel brand-card">
-    <div class="eyebrow">Street Sign Intelligence</div>
-    <div class="logo-row">
-      <div class="logo-mark">SL</div>
-      <div class="logo-text">
-        <div class="logo-main">Sign<em>Lens</em></div>
-        <div class="logo-sub">Translation System</div>
-      </div>
-    </div>
-    <h1 class="auth-title">Log in to your <strong>translation workspace</strong>.</h1>
-    <p class="auth-copy">
-      Sign in before using the OCR translator. Once you are inside, you can upload or capture a street sign,
-      extract the text, and translate it into your selected language in seconds.
-    </p>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-label">OCR Engine</div>
-        <div class="feature-value">Fast image reading</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-label">Languages</div>
-        <div class="feature-value">10 target options</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-label">Workflow</div>
-        <div class="feature-value">Capture, detect, translate</div>
-      </div>
-    </div>
-  </article>
-
-  <article class="auth-panel login-card">
-    <div class="login-top">
-      <div class="login-kicker">Member Access</div>
-      <div class="login-badge">Login Page Added</div>
-    </div>
-    <h2>Welcome back</h2>
-    <p>Use the demo account below to enter the app. This is a client-side login gate so you can style and test the flow now.</p>
-
-    <div class="demo-box">
-      <div class="demo-title">Demo credentials</div>
-      <div class="demo-credentials">
-        <div><strong>Email:</strong> admin@signlens.ai</div>
-        <div><strong>Password:</strong> SignLens123</div>
-      </div>
-      <button class="mini-btn" type="button" id="fillDemoBtn">Fill demo login</button>
-    </div>
-
-    <form id="loginForm">
-      <div class="field-wrap">
-        <label for="emailInput">Email</label>
-        <input id="emailInput" name="email" type="email" autocomplete="email" placeholder="admin@signlens.ai" required/>
-      </div>
-      <div class="field-wrap">
-        <label for="passwordInput">Password</label>
-        <input id="passwordInput" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required/>
-      </div>
-      <div class="login-actions">
-        <label class="check-row" for="rememberInput">
-          <input id="rememberInput" type="checkbox"/>
-          Remember my email on this browser
-        </label>
-      </div>
-      <div class="auth-error" id="authError" hidden></div>
-      <button class="primary-btn" type="submit">Log In To SignLens</button>
-    </form>
-
-    <p class="auth-note">
-      When you are ready for production authentication, connect this form to a real backend login endpoint
-      instead of the built-in demo credentials.
-    </p>
-  </article>
-</section>
-
-<section class="app-shell" id="appShell" hidden>
+<section class="app-shell" id="appShell">
   <div class="status-bar">
     <div class="status-dot" id="statusDot"></div>
     <span class="status-text" id="statusText">Checking backend...</span>
@@ -1042,8 +968,6 @@ footer{
       <div class="pill"><span class="pill-dot"></span>AI Powered | 10 Languages</div>
     </div>
     <div class="header-side">
-      <div class="pill user-pill">Signed in as <strong id="welcomeName">Admin User</strong></div>
-      <button class="secondary-btn" type="button" id="logoutBtn">Log Out</button>
     </div>
   </header>
 
@@ -1195,12 +1119,6 @@ footer{
 
 <script>
 const API_BASE = "";
-const DEMO_AUTH = {
-  email: "admin@signlens.ai",
-  password: "SignLens123",
-  name: "Admin User"
-};
-const REMEMBERED_EMAIL_KEY = "signlens-remembered-email";
 const LANGUAGE_NAMES = {
   en: "English",
   kn: "Kannada",
@@ -1218,17 +1136,6 @@ let selectedLanguage = "en";
 let currentBlob = null;
 let mediaStream = null;
 let cameraOpen = false;
-
-const authGate = document.getElementById("authGate");
-const appShell = document.getElementById("appShell");
-const authError = document.getElementById("authError");
-const loginForm = document.getElementById("loginForm");
-const emailInput = document.getElementById("emailInput");
-const passwordInput = document.getElementById("passwordInput");
-const rememberInput = document.getElementById("rememberInput");
-const fillDemoBtn = document.getElementById("fillDemoBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const welcomeName = document.getElementById("welcomeName");
 
 const statusDot = document.getElementById("statusDot");
 const statusText = document.getElementById("statusText");
@@ -1255,90 +1162,6 @@ const preprocessedImage = document.getElementById("preprocessedImage");
 const stepRead = document.getElementById("stepRead");
 const stepExtract = document.getElementById("stepExtract");
 const stepTranslate = document.getElementById("stepTranslate");
-
-function showAuthError(message) {
-  authError.textContent = message;
-  authError.hidden = false;
-}
-
-function clearAuthError() {
-  authError.hidden = true;
-  authError.textContent = "";
-}
-
-function saveRememberedEmail(email, rememberEmail) {
-  if (rememberEmail) {
-    localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
-  } else {
-    localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-  }
-}
-
-function restoreRememberedEmail() {
-  const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
-  if (!savedEmail) {
-    rememberInput.checked = false;
-    return;
-  }
-
-  emailInput.value = savedEmail;
-  rememberInput.checked = true;
-}
-
-function showApp(user) {
-  welcomeName.textContent = user.name || user.email || "Member";
-  authGate.hidden = true;
-  appShell.hidden = false;
-  clearAuthError();
-  checkBackend();
-}
-
-function showLogin() {
-  appShell.hidden = true;
-  authGate.hidden = false;
-  passwordInput.value = "";
-  emailInput.focus();
-}
-
-function handleLogin(event) {
-  event.preventDefault();
-  clearAuthError();
-
-  const email = emailInput.value.trim().toLowerCase();
-  const password = passwordInput.value;
-
-  if (!email || !password) {
-    showAuthError("Enter both email and password.");
-    return;
-  }
-
-  // This is a demo login gate until a real backend auth endpoint exists.
-  if (email !== DEMO_AUTH.email || password !== DEMO_AUTH.password) {
-    showAuthError("Use the demo credentials shown above to access the app.");
-    return;
-  }
-
-  saveRememberedEmail(email, rememberInput.checked);
-  loginForm.reset();
-  showApp(DEMO_AUTH);
-}
-
-function handleLogout() {
-  stopCamera();
-  currentBlob = null;
-  fileInput.value = "";
-  resetPreview();
-  resetResults();
-  setProcessLoading(false);
-  showLogin();
-  restoreRememberedEmail();
-}
-
-function fillDemoCredentials() {
-  emailInput.value = DEMO_AUTH.email;
-  passwordInput.value = DEMO_AUTH.password;
-  emailInput.focus();
-}
 
 function checkBackend() {
   fetch(API_BASE + "/api/health")
@@ -1663,9 +1486,6 @@ function processImage() {
     });
 }
 
-fillDemoBtn.addEventListener("click", fillDemoCredentials);
-loginForm.addEventListener("submit", handleLogin);
-logoutBtn.addEventListener("click", handleLogout);
 fileInput.addEventListener("change", readUploadedFile);
 cameraBtn.addEventListener("click", toggleCamera);
 captureBtn.addEventListener("click", captureFrame);
@@ -1682,8 +1502,6 @@ document.querySelectorAll(".copy-btn").forEach((button) => {
 
 resetPreview();
 resetResults();
-restoreRememberedEmail();
-showLogin();
 checkBackend();
 setInterval(checkBackend, 5000);
 </script>

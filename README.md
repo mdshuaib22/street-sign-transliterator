@@ -44,3 +44,7 @@ python -m pytest -q
 ```
 
 GitHub Actions runs a syntax check and the test suite on every push and pull request to `main`.
+
+## Access control
+
+There is no login screen and no authentication: anyone who can reach the server can use the OCR and translation endpoints, which spend upstream translation calls. Run it on localhost, or put it behind a VPN or an authenticating reverse proxy before exposing it publicly.
